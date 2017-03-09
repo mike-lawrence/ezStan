@@ -1,3 +1,4 @@
+#' @import rstan
 #' @importFrom stats "contr.sum" "contrasts" "contrasts<-" "cor" "model.matrix" "pnorm" "sd" "terms"
 #' @importFrom utils installed.packages
 NULL
@@ -128,8 +129,7 @@ stan_summary = function(
 	, return_array = F
 ){
 
-	s = summary(object=from_stan,pars=par,probs=probs,use_cache=F)
-	s = s$summary
+	s = summary(object=from_stan,pars=par,probs=probs,use_cache=F)$summary
 	s = array(
 		s[,4:ncol(s)]
 		, dim = c(dim(s)[1],ncol(s)-3)
