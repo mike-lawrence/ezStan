@@ -263,8 +263,10 @@ get_condition_post <-
 		to_return = data.frame(expand.grid(temp))
 		names(to_return) = data_vars
 		both_formula = eval(parse(text=paste('~', paste(data_vars, collapse = '*'))))
-		unique_mm = model.matrix(both_formula,to_return)
-		unique_mm = unique_mm[,new_names]
+		unique_mm = get_contrast_matrix(
+			data = to_return
+			, formula = both_formula
+		)
 		samples = rstan::extract(from_stan,par)[[1]]
 		samples = matrix(samples,nrow=dim(samples)[1])
 		# samples = samples[,match(new_names,dimnames(unique_mm)[[2]])]
