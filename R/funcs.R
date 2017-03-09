@@ -39,7 +39,12 @@ get_contrast_matrix = function(
 	}
 	vars = attr(terms(formula),'term.labels')
 	vars = vars[!grepl(':',vars)]
-	data = data[,vars]
+	if(length(vars)==1){
+		data = data.frame(data[,vars])
+		names(data) = vars
+	}else{
+		data = data[,vars]
+	}
 	vars_to_rename = NULL
 	for(i in vars){
 		if(is.character(data[,i])){
