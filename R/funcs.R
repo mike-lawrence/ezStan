@@ -234,12 +234,12 @@ get_condition_post <-
 		for(i in 1:length(data_vars)){
 			this_var = data_vars[i]
 			if(is.null(W)){
-				this_fixed_data = sort(unique(data[,names(data)==this_var]))
+				this_fixed_data = data[,names(data)==this_var]
 			}else{
 				if(this_var%in%W_vars){
-					this_fixed_data = sort(unique(W_data[,names(W_data)==this_var]))
+					this_fixed_data = W_data[,names(W_data)==this_var]
 				}else{
-					this_fixed_data = sort(unique(B_data[,names(B_data)==this_var]))
+					this_fixed_data = B_data[,names(B_data)==this_var]
 				}
 			}
 			if(is.numeric(this_fixed_data)*(numeric_res>0)){
@@ -249,7 +249,7 @@ get_condition_post <-
 					, length.out=numeric_res
 				)
 			}else{
-				temp[[i]] = this_fixed_data
+				temp[[i]] = sort(unique(this_fixed_data))
 				if(is.factor(temp[[i]])){
 					contrasts(temp[[i]]) = contrasts(this_fixed_data)
 				}
