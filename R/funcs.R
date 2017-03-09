@@ -128,7 +128,7 @@ stan_summary = function(
 	, return_array = F
 ){
 
-	s = summary(from_stan,par,probs,digits,use_cache=F)$summary
+	s = summary(object=from_stan,pars=par,probs=probs,use_cache=F)$summary
 	s = array(
 		s[,4:ncol(s)]
 		, dim = c(dim(s)[1],ncol(s)-3)
