@@ -95,7 +95,7 @@ names_from_WB = function(W,B,reverse = F){
 	}else{
 		for(i in W_names){
 			for(j in B_names){
-				new_names[k] = paste(i,j,sep=':')
+				new_names[k] = paste(j,i,sep=':')
 				k = k + 1
 			}
 		}
@@ -224,7 +224,7 @@ get_condition_post <-
 			W_vars = W_vars[!grepl(':',W_vars)]
 			B_vars = attr(terms(attr(B,'formula')),'term.labels')
 			B_vars = B_vars[!grepl(':',B_vars)]
-			data_vars = c(W_vars,B_vars)
+			data_vars = c(B_vars,W_vars)
 			new_names = names_from_WB(W,B,reverse=T)
 		}else{
 			data = attr(X,'data')
@@ -267,6 +267,7 @@ get_condition_post <-
 			data = to_return
 			, formula = both_formula
 		)
+		unique_mm = unique_mm[,new_names]
 		samples = rstan::extract(from_stan,par)[[1]]
 		samples = matrix(samples,nrow=dim(samples)[1])
 		# samples = samples[,match(new_names,dimnames(unique_mm)[[2]])]
