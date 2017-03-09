@@ -82,7 +82,7 @@ names_from_WB = function(W,B,reverse = F){
 	if(!reverse){
 		for(i in B_names){
 			for(j in W_names){
-				new_names[k] = paste(j,i,sep=':')
+				new_names[k] = paste(i,j,sep=':')
 				k = k + 1
 			}
 		}
