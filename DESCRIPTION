@@ -2,16 +2,15 @@ Package: ezStan
 Type: Package
 Title: Helper Functions for Stan
 Version: 0.1.0
-Authors@R: person(given='Michael',middle='A.',family='Lawrence',email='mike.lwrnc@gmail.com',role=c('aut','cre'))
+Authors@R: person(given='Michael A.',family='Lawrence',email='mike.lwrnc@gmail.com',role=c('aut','cre'))
 Description: A collection of functions to facilitate use of Stan/rstan.
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
 Imports: 
-    dplyr (>= 0.5.0) ,
-    rstan (>= 2.14.1) ,
+    dplyr (>= 0.5.0),
+    rstan (>= 2.14.1),
     tidyr (>= 0.6.0)
 Suggests:
     tibble
-Enhances: rstan
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1

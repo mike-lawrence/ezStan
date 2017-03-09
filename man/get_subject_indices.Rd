@@ -16,4 +16,3 @@ A matrix with two columns (start & end) and as many rows as there are unique lab
 Given input of an ordered subject label vector, returns the indices into this
 vector corresponding to the beginning and end of each subject.
 }
-

@@ -32,4 +32,3 @@ Either nothing (merely prints to screen) if return_array is FALSE, or the array 
 \description{
 Compute a summary table for the posterior samples for a parameter from a Stan model
 }
-

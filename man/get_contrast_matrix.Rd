@@ -19,4 +19,3 @@ A contrast matrix with the formula & data saved as attributes.
 \description{
 Obtain a contrast matrix for a data set given a specified formula
 }
-

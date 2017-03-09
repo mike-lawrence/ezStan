@@ -26,4 +26,3 @@ If the `tibble` package is installed, a tibble; else, a data frame.
 \description{
 Combine coefficient samples from a Stan model with the design matrix to compute posterior samples on the conditions of the design.
 }
-

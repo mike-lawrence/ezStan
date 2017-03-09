@@ -16,4 +16,3 @@ See Value in contr.sum().
 Returns contrasts whereby coeffients will be equal to the difference between
 levels (in the case of 2-level factors). Simply contr.sum()/2.
 }
-

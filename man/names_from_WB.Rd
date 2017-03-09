@@ -19,4 +19,3 @@ A vector of character strings indicating names of variables.
 \description{
 Figure out variable names given W & B contrast matrices
 }
-

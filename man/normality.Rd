@@ -18,4 +18,3 @@ between the data and the expected data given each data point's quantile and a
 normal distribution with a mean equal to the data's mean and a standard
 deviation equal to the data's standard deviation.
 }
-
