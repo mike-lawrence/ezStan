@@ -1,5 +1,5 @@
 #' @import rstan
-#' @importFrom stats "contr.sum" "contrasts" "contrasts<-" "cor" "model.matrix" "pnorm" "sd" "terms"
+#' @importFrom stats "contr.sum" "contrasts" "contrasts<-" "cor" "median" "model.matrix" "pnorm" "sd" "terms"
 #' @importFrom utils installed.packages
 NULL
 
@@ -195,6 +195,7 @@ stan_summary = function(
 #' @param W Optional contrast matrix as yielded from get_contrast_matrix() indicating the within-subjects contrasts passed as data when creating the above stanfit object. If present, X is ignored and B must be present.
 #' @param B Optional contrast matrix as yielded from get_contrast_matrix() indicating the between-subjects contrasts passed as data when creating the above stanfit object. W must be present, else B is ignored.
 #' @param numeric_res Integer value conveying the number of points within the range of a continuous variable to sample. If 0, the values from the data are used.
+#' @param collapse_intercept_to_median Logical indicating whether to use the median of the samples for the intercept rather than its full set of samples. Assumes that the intercept is the first parameter.
 #'
 #' @return If the `tibble` package is installed, a tibble; else, a data frame.
 #' @export
@@ -210,6 +211,7 @@ get_condition_post <-
 		, W = NULL
 		, B = NULL
 		, numeric_res = 0
+		, collapse_intercept_to_median = FALSE
 	){
 		if(!is.null(W)){
 			W_data = attr(W,'data')
@@ -270,6 +272,9 @@ get_condition_post <-
 		unique_mm = unique_mm[,new_names]
 		samples = rstan::extract(from_stan,par)[[1]]
 		samples = matrix(samples,nrow=dim(samples)[1])
+		if(collapse_intercept_to_median){
+			samples[,1] = median(samples[,1])
+		}
 		# samples = samples[,match(new_names,dimnames(unique_mm)[[2]])]
 		mat = matrix(NA,nrow=nrow(to_return),ncol=dim(samples)[1])
 		for(i in 1:dim(samples)[1]){

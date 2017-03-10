@@ -5,7 +5,7 @@
 \title{Combine coefficient samples from a Stan model with the design matrix to compute posterior samples on the conditions of the design.}
 \usage{
 get_condition_post(from_stan, par, X = NULL, W = NULL, B = NULL,
-  numeric_res = 0)
+  numeric_res = 0, collapse_intercept_to_median = FALSE)
 }
 \arguments{
 \item{from_stan}{A stanfit object from a call to rstan::stan() or rstan::sampling() containing posterior samples from the model.}
@@ -19,6 +19,8 @@ get_condition_post(from_stan, par, X = NULL, W = NULL, B = NULL,
 \item{B}{Optional contrast matrix as yielded from get_contrast_matrix() indicating the between-subjects contrasts passed as data when creating the above stanfit object. W must be present, else B is ignored.}
 
 \item{numeric_res}{Integer value conveying the number of points within the range of a continuous variable to sample. If 0, the values from the data are used.}
+
+\item{collapse_intercept_to_median}{Logical indicating whether to use the median of the samples for the intercept rather than its full set of samples. Assumes that the intercept is the first parameter.}
 }
 \value{
 If the `tibble` package is installed, a tibble; else, a data frame.
