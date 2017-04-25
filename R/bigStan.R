@@ -118,7 +118,6 @@ startBigStan = function(
 			, iter = iter
 			, warmup = warmup
 			, refresh = 0
-			, init = 0
 			, chains = 1
 			, cores = 1
 			, "
