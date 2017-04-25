@@ -226,7 +226,8 @@ watchBigStan = function(updateInterval=1,one_line_per_chain=TRUE,spacing=3){
 		}
 	}
 	updateTextToPrint = '\n'
-	temp = paste0('All done! Elapsed time: ',timeAsString(as.numeric(Sys.time() - bigStanStuff$startTime)))
+	timeElapsed = difftime(Sys.time(), bigStanStuff$startTime,unit='secs')
+	temp = paste0('All done! Elapsed time: ',timeAsString(timeElapsed))
 	updateTextToPrint = appendString(updateTextToPrint,temp,spacing,one_line_per_chain)
 	if(length(chains_with_stderr)>0){
 		temp = paste0('chains with messages from Stan: ',paste(chains_with_stderr,collapse=', '))
