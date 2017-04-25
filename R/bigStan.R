@@ -192,7 +192,7 @@ watchBigStan = function(updateInterval=1,one_line_per_chain=TRUE,spacing=3){
 				}
 			}
 			minDone = min(unlist(bigStanStuff$progressList))
-			timeElapsed = as.numeric(Sys.time() - bigStanStuff$startTime)
+			timeElapsed = difftime(Sys.time(), bigStanStuff$startTime,unit='secs')
 			timeLeft = "?"
 			if(is.finite(minDone)){
 				if(minDone>0){
