@@ -2,11 +2,6 @@
 #' @importFrom lubridate "seconds_to_period"
 NULL
 
-# todo:
-#  during-sampling: effective sample size and rhat for each parameter
-#  during-sampling: diagnostics?
-#  add to ezStan (https://github.com/mike-lawrence/ezStan)
-
 #usage:
 # #compile the model using rstan::stan_model:
 # mod = rstan::stan_model('my_model.stan')

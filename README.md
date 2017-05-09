@@ -8,4 +8,6 @@ This package contains code I develop through my teaching and personal use of Sta
 - collectBigStan: collect contents of stderr files
 - watchBigStan: only list a chain as having an error if it is not complete
 - watchBigStan: "chains with errors" message is only ever showing one number
+- watchBigStan: compute effective sample size and rhat for each parameter
+- watchBigStan: other diagnostics?
 - choose either camelCase or snake_case and be consistent
