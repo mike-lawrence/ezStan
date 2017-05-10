@@ -167,14 +167,6 @@ watchBigStan = function(updateInterval=1,one_line_per_chain=TRUE,spacing=3){
 		Sys.sleep(updateInterval)
 		for(i in 1:bigStanStuff$cores){
 			if(!(i %in% bigStanStuff$doneList)){ #if this chain isn't already done
-				if(!(i %in% bigStanStuff$errorList)){ #if this chain isn't already in the error list
-					if(file.exists(bigStanStuff$stderrFileList[[i]])){ #check if the stderr file exists
-						temp = readLines(bigStanStuff$stderrFileList[[i]])
-						if(length(temp)>0){ #stderr file has contents
-							bigStanStuff$errorList = c(bigStanStuff$errorList,i)
-						}
-					}
-				}
 				if(file.exists(bigStanStuff$sampleFile[[i]])){ #only try reading the sample file if it exists
 					a = readLines(bigStanStuff$sampleFile[[i]])
 					a = a[substr(a,1,1)!="#"]
@@ -213,6 +205,16 @@ watchBigStan = function(updateInterval=1,one_line_per_chain=TRUE,spacing=3){
 							}
 						}
 						save(bigStanStuff,file='bigStanTemp/bigStanStuff.rda')
+					}
+				}
+			}
+			if(!(i %in% bigStanStuff$doneList)){
+				if(!(i %in% bigStanStuff$errorList)){ #if this chain isn't already in the error list
+					if(file.exists(bigStanStuff$stderrFileList[[i]])){ #check if the stderr file exists
+						temp = readLines(bigStanStuff$stderrFileList[[i]])
+						if(length(temp)>0){ #stderr file has contents
+							bigStanStuff$errorList = c(bigStanStuff$errorList,i)
+						}
 					}
 				}
 			}
