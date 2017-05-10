@@ -156,17 +156,23 @@ startBigStan = function(
 watchBigStan = function(updateInterval=1,one_line_per_chain=TRUE,spacing=3){
 	bigStanStuff = NULL
 	load('bigStanTemp/bigStanStuff.rda')
-	bigStanStuff$numDone = length(list.files(path="bigStanTemp/rdas"))
-	while(bigStanStuff$numDone<bigStanStuff$cores){
-		chains_with_stderr = c()
+	if(!("numDone" %in% names(bigStanStuff))){
+		bigStanStuff$numDone = length(list.files(path="bigStanTemp/rdas"))
+		bigStanStuff$doneList = c()
+		bigStanStuff$errorList = c()
+		bigStanStuff$messageList = c()
+	}
+	while((bigStanStuff$numDone<bigStanStuff$cores) & (length(bigStanStuff$errorList)<bigStanStuff$cores) ){ #quit if done or all errors
 		bigStanStuff$numDone = length(list.files(path="bigStanTemp/rdas"))
 		Sys.sleep(updateInterval)
 		for(i in 1:bigStanStuff$cores){
-			if(bigStanStuff$progressList[[i]]<bigStanStuff$iter){ #only check this chain if it isn't done
-				if(file.exists(bigStanStuff$stderrFileList[[i]])){ #check if the stderr file exists
-					temp = readLines(bigStanStuff$stderrFileList[[i]])
-					if(length(temp)>0){ #stderr file has contents
-						chains_with_stderr = c(chains_with_stderr,i)
+			if(!(i %in% bigStanStuff$doneList)){ #if this chain isn't already done
+				if(!(i %in% bigStanStuff$errorList)){ #if this chain isn't already in the error list
+					if(file.exists(bigStanStuff$stderrFileList[[i]])){ #check if the stderr file exists
+						temp = readLines(bigStanStuff$stderrFileList[[i]])
+						if(length(temp)>0){ #stderr file has contents
+							bigStanStuff$errorList = c(bigStanStuff$errorList,i)
+						}
 					}
 				}
 				if(file.exists(bigStanStuff$sampleFile[[i]])){ #only try reading the sample file if it exists
@@ -183,6 +189,29 @@ watchBigStan = function(updateInterval=1,one_line_per_chain=TRUE,spacing=3){
 					# 	options(warn=old_warn$warn)
 					# }
 					if(bigStanStuff$progressList[[i]]!=old_progress){
+						if(bigStanStuff$progressList[[i]]==bigStanStuff$iter){
+							bigStanStuff$doneList = c(bigStanStuff$doneList,i)
+							#check for post-sampling messages from Stan
+							if(file.exists(bigStanStuff$stderrFileList[[i]])){ #check if the stderr file exists
+								temp = readLines(bigStanStuff$stderrFileList[[i]])
+								if(length(temp)>0){ #stderr file has contents
+									bigStanStuff$messageList = c(bigStanStuff$messageList,i)
+								}
+							}
+						}
+						save(bigStanStuff,file='bigStanTemp/bigStanStuff.rda')
+					}
+				}else{
+					if(file.exists(bigStanStuff$rdaFile[[i]])){ #might not have caught this finished chain before its sample file was deleted
+						bigStanStuff$progressList[[i]] = bigStanStuff$iter
+						bigStanStuff$doneList = c(bigStanStuff$doneList,i)
+						#check for post-sampling messages from Stan
+						if(file.exists(bigStanStuff$stderrFileList[[i]])){ #check if the stderr file exists
+							temp = readLines(bigStanStuff$stderrFileList[[i]])
+							if(length(temp)>0){ #stderr file has contents
+								bigStanStuff$messageList = c(bigStanStuff$messageList,i)
+							}
+						}
 						save(bigStanStuff,file='bigStanTemp/bigStanStuff.rda')
 					}
 				}
@@ -204,32 +233,48 @@ watchBigStan = function(updateInterval=1,one_line_per_chain=TRUE,spacing=3){
 			updateTextToPrint = appendString(updateTextToPrint,temp,spacing,one_line_per_chain)
 			temp = paste0('Estimated time remaining: ',timeLeft)
 			updateTextToPrint = appendString(updateTextToPrint,temp,spacing,one_line_per_chain)
-			if(length(chains_with_stderr)>0){
-				temp = paste0('chains with errors: ',paste(chains_with_stderr,collapse=', '))
+			if(length(bigStanStuff$errorList)>0){
+				temp = paste0('chains with errors: ',paste(bigStanStuff$errorList,collapse=', '))
+				updateTextToPrint = appendString(updateTextToPrint,temp,spacing,one_line_per_chain)
+			}
+			if(length(bigStanStuff$messageList)>0){
+				temp = paste0('chains with messages: ',paste(bigStanStuff$messageList,collapse=', '))
 				updateTextToPrint = appendString(updateTextToPrint,temp,spacing,one_line_per_chain)
 			}
 			cat(updateTextToPrint)
 			utils::flush.console()
 		}
 	}
-	chains_with_stderr = c()
-	for(i in 1:bigStanStuff$cores){
-		if(file.exists(bigStanStuff$stderrFileList[[i]])){ #check if the stderr file exists
-			temp = readLines(bigStanStuff$stderrFileList[[i]])
-			if(length(temp)>0){ #stderr file has contents
-				chains_with_stderr = c(chains_with_stderr,i)
+	if((length(bigStanStuff$errorList)==bigStanStuff$cores)){ #we're done because all errors
+		cat('\nErrors on all chains!')
+	}else{
+		#one last check for messages
+		for(i in 1:bigStanStuff$cores){
+			if(!(i %in% bigStanStuff$errorList)){ #if it's not already in the error list
+				if(!(i %in% bigStanStuff$messageList)){ #if it's not already in the message list
+					if(file.exists(bigStanStuff$stderrFileList[[i]])){ #if the stderr file exists
+						temp = readLines(bigStanStuff$stderrFileList[[i]])
+						if(length(temp)>0){ #stderr file has contents
+							bigStanStuff$messageList = c(bigStanStuff$messageList,i)
+						}
+					}
+				}
 			}
 		}
-	}
-	updateTextToPrint = '\n'
-	timeElapsed = difftime(Sys.time(), bigStanStuff$startTime,unit='secs')
-	temp = paste0('All done! Elapsed time: ',timeAsString(timeElapsed))
-	updateTextToPrint = appendString(updateTextToPrint,temp,spacing,one_line_per_chain)
-	if(length(chains_with_stderr)>0){
-		temp = paste0('chains with messages from Stan: ',paste(chains_with_stderr,collapse=', '))
+		updateTextToPrint = '\n'
+		timeElapsed = difftime(Sys.time(), bigStanStuff$startTime,unit='secs')
+		temp = paste0('All done! Elapsed time: ',timeAsString(timeElapsed))
 		updateTextToPrint = appendString(updateTextToPrint,temp,spacing,one_line_per_chain)
+		if(length(bigStanStuff$errorList)>0){
+			temp = paste0('chains with errors: ',paste(bigStanStuff$errorList,collapse=', '))
+			updateTextToPrint = appendString(updateTextToPrint,temp,spacing,one_line_per_chain)
+		}
+		if(length(bigStanStuff$messageList)>0){
+			temp = paste0('chains with messages: ',paste(bigStanStuff$messageList,collapse=', '))
+			updateTextToPrint = appendString(updateTextToPrint,temp,spacing,one_line_per_chain)
+		}
+		cat(updateTextToPrint)
 	}
-	cat(updateTextToPrint)
 	utils::flush.console()
 	return(invisible(NULL))
 }
