@@ -291,7 +291,7 @@ collectBigStan = function(){
 	bigStanStuff = NULL
 	load('bigStanTemp/bigStanStuff.rda')
 	rdaList = list()
-	for(i in 1:bigStanStuff$cores){
+	for(i in 1:bigStanStuff$doneList){
 		load(bigStanStuff$rdaFileList[[i]])
 		rdaList[[i]] = get(bigStanStuff$chainNameList[[i]])
 	}
