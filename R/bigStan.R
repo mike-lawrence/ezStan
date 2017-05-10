@@ -123,6 +123,8 @@ startBigStan = function(
 			, "\n"
 			, "save(",bigStanStuff$chainNameList[[i]],",file='",bigStanStuff$rdaFileList[[i]],"')"
 			, "\n"
+			, "file.remove(",bigStanStuff$sampleFileList[[i]],")"
+			, "\n"
 			, sep = ''
 			, file = bigStanStuff$rFileList[[i]]
 			, append = FALSE
