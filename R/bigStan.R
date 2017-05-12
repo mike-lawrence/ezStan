@@ -72,12 +72,14 @@ startBigStan = function(
 	bigStanStuff$rFileList = list()
 	bigStanStuff$chainNameList = list()
 	bigStanStuff$sampleFileList = list()
+	bigStanStuff$sampleFileSizeList = list()
 	bigStanStuff$rdaFileList = list()
 	bigStanStuff$stdoutFileList = list()
 	bigStanStuff$stderrFileList = list()
 	bigStanStuff$progressList = list()
 	bigStanStuff$samplesList = list()
 	for(i in 1:cores){
+		bigStanStuff$sampleFileSizeList[[i]] = 0
 		bigStanStuff$progressList[[i]] = 0
 		bigStanStuff$samplesList[[i]] = NULL
 		bigStanStuff$rFileList[[i]] = paste0('bigStanTemp/r/',i,'.r')
@@ -167,20 +169,18 @@ watchBigStan = function(updateInterval=1,one_line_per_chain=TRUE,spacing=3){
 		Sys.sleep(updateInterval)
 		for(i in 1:bigStanStuff$cores){
 			if(!(i %in% bigStanStuff$doneList)){ #if this chain isn't already done
-				if(file.exists(bigStanStuff$sampleFile[[i]])){ #only try reading the sample file if it exists
-					a = readLines(bigStanStuff$sampleFile[[i]])
-					a = a[substr(a,1,1)!="#"]
-					a = a[substr(a,1,4)!="lp__"]
-					a = a[a!='']
-					old_progress = bigStanStuff$progressList[[i]]
-					bigStanStuff$progressList[[i]] = length(a)
-					# if(length(a)>warmup){
-					# 	old_warn = options("warn")
-					# 	options(warn=-1)
-					# 	samplesList[[i]] = rstan::read_stan_csv(sampleFile)
-					# 	options(warn=old_warn$warn)
-					# }
-					if(bigStanStuff$progressList[[i]]!=old_progress){
+				if(file.exists(bigStanStuff$sampleFileList[[i]])){ #only try reading the sample file if it exists
+					size = file.size(bigStanStuff$sampleFileList[[i]])
+					if(size>bigStanStuff$sampleFileSizeList[[i]]){ #only try reading if the sample file size has changed
+						f = file(description=bigStanStuff$sampleFileList[[i]],open='rb')
+						seek(con = f, origin = 'start', where = bigStanStuff$sampleFileSizeList[[i]])
+						a = readLines(f)
+						close(f)
+						bigStanStuff$sampleFileSizeList[[i]] = size
+						a = a[substr(a,1,1)!="#"]
+						a = a[substr(a,1,4)!="lp__"]
+						a = a[a!='']
+						bigStanStuff$progressList[[i]] = bigStanStuff$progressList[[i]] + length(a)
 						if(bigStanStuff$progressList[[i]]==bigStanStuff$iter){
 							bigStanStuff$doneList = c(bigStanStuff$doneList,i)
 							#check for post-sampling messages from Stan
