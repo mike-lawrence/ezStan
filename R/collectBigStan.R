@@ -8,9 +8,13 @@ collectBigStan = function(){
 	bigStanStuff = NULL
 	load('bigStanTemp/bigStanStuff.rda')
 	rdaList = list()
-	for(i in bigStanStuff$doneList){
-		load(bigStanStuff$rdaFileList[[i]])
-		rdaList[[i]] = get(bigStanStuff$chainNameList[[i]])
+	j = 1
+	for(i in 1:bigStanStuff$cores){
+		if(file.exists(bigStanStuff$rdaFileList[[i]])){
+			load(bigStanStuff$rdaFileList[[i]])
+			rdaList[[j]] = get(bigStanStuff$chainNameList[[i]])
+			j = j + 1
+		}
 	}
 	return(sflist2stanfit(rdaList))
 }
