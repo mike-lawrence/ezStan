@@ -9,3 +9,4 @@ This package contains code I develop through my teaching and personal use of Sta
 - watchBigStan: compute effective sample size and rhat for each parameter
 - watchBigStan: other diagnostics?
 - choose either camelCase or snake_case and be consistent
+- function to compile stan models without locking up interface
