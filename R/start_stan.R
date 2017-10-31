@@ -17,8 +17,8 @@
 
 #' Start a Stan session
 #'
-#' @param mod A stan model created by rstan::stan_model().
 #' @param data A list of objects expected by the model as data.
+#' @param mod A stan model created by rstan::stan_model().
 #' @param iter An integer value specifying the number of iterations to run per core.
 #' @param cores An integer value specifying the number of cores to run in parallel.
 #' @param args A string containing code to append inside the call to rstan::sampling() to specify non-default values for its arguments. For example, the string "pars='mu',control=list(adapt_delta=.9)" would only keep samples for the "mu" parameter and set the adapt_delta value to .9.
@@ -29,8 +29,8 @@
 #'
 #' @examples
 start_stan = function(
-	mod
-	, data
+	data
+	, mod
 	, iter = 2e3
 	, cores = parallel::detectCores()
 	, args = NULL
