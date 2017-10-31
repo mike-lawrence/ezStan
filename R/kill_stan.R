@@ -1,10 +1,10 @@
-#' Terminate an errant Big Stan session
+#' Terminate an errant Stan session
 #'
 #' @return No value is returned
 #' @export
 #'
 #' @examples
-killBigStan = function(){
+kill_stan = function(){
 	system2(
 		command = "killall"
 		, args = "R"
