@@ -2,7 +2,7 @@
 #'
 #' @param data A data frame (or tibble).
 #' @param formula A formula starting with `~` expressing the model
-#' @param do_halfsum_contrasts A logical indicating whether to use half-sum contrasts.
+#' @param contrast_kind The kind of contrasts to use. Used to quickly convert all factors to a particular non-R-default contrast kind.
 #'
 #' @return A contrast matrix with the formula & data saved as attributes.
 #' @export
@@ -11,7 +11,7 @@
 get_contrast_matrix = function(
 	data
 	, formula
-	, do_halfsum_contrasts = T
+	, contrast_kind = NULL
 ){
 	if (inherits(data, "tbl_df")) {
 		data = as.data.frame(data)
@@ -33,8 +33,8 @@ get_contrast_matrix = function(
 			if(length(levels(data[,i]))==2){
 				vars_to_rename = c(vars_to_rename,i)
 			}
-			if(do_halfsum_contrasts ){
-				contrasts(data[,i]) = halfsum_contrasts
+			if(!is.null(contrast_kind) ){
+				contrasts(data[,i]) = contrast_kind
 			}
 		}
 	}

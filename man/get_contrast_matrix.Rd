@@ -4,14 +4,14 @@
 \alias{get_contrast_matrix}
 \title{Obtain a contrast matrix for a data set given a specified formula}
 \usage{
-get_contrast_matrix(data, formula, do_halfsum_contrasts = T)
+get_contrast_matrix(data, formula, contrast_kind = NULL)
 }
 \arguments{
 \item{data}{A data frame (or tibble).}
 
 \item{formula}{A formula starting with `~` expressing the model}
 
-\item{do_halfsum_contrasts}{A logical indicating whether to use half-sum contrasts.}
+\item{contrast_kind}{The kind of contrasts to use. Used to quickly convert all factors to a particular non-R-default contrast kind.}
 }
 \value{
 A contrast matrix with the formula & data saved as attributes.
