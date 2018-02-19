@@ -5,7 +5,17 @@
 NULL
 
 .onAttach <- function(libname, pkgname) {
-	packageStartupMessage("[2017-10-31] Note from the ezStan developer:\nI've updated this package to have more consistent naming of functions and function arguments. Specifically, I've converted everything to snake_case and any functions with the format \"...BigStan()\" have changed to \"..._stan()\". See function help pages for updated function arguments.")
+	packageStartupMessage('
+[2018-02-16] ezStan changes:\n
+- start_stan: "args" argument eliminated; see ?start_stan for new usage.
+- start_stan: now permits running multiple sequential chains on each core (useful if you want more chains than available cores).
+- watch_stan: now shows warnings and errors as they occur (requires loggr package to be installed via devtools::install_github("mike-lawrence/loggr")).
+- watch_stan: now shows post-warmup divergences and iterations exceeding the max_treedepth.
+- watch_stan: now plays a beep if the beepr package is installed.
+- collect_stan: now shows any warnings and errors encountered during sampling.
+- build_stan: new function that attempts to build stan models in a separate process, thereby avoiding interface hangs in RStudio. Still a work in progess as scenarios where you encounter the "hash mismatch" warning will still cause a hang.
+'
+	)
 }
 
 str_rep = function(x, i) {
@@ -17,7 +27,7 @@ time_as_string = function(x) {
 append_string = function(s,i,spacing,one_line_per_chain){
 	if(one_line_per_chain){
 		w = getOption("width")
-		s = paste0(s,i,str_rep(' ',w-nchar(i)+spacing))
+		s = paste0(s,i,str_rep(' ',w-(nchar(i)%%w)+spacing))
 	}else{
 		s = paste0(s,i,str_rep(' ',spacing))
 	}

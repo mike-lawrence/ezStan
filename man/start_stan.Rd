@@ -4,23 +4,23 @@
 \alias{start_stan}
 \title{Start a Stan session}
 \usage{
-start_stan(data, mod, iter = 2000, cores = parallel::detectCores(),
-  args = NULL, seed_start = 1, warmup = NULL)
+start_stan(data, mod, iter = 2000, cores = parallel::detectCores()/2,
+  chains_per_core = 1, seed_start = 1, ...)
 }
 \arguments{
 \item{data}{A list of objects expected by the model as data.}
 
 \item{mod}{A stan model created by rstan::stan_model().}
 
-\item{iter}{An integer value specifying the number of iterations to run per core.}
+\item{iter}{An integer specifying the number of iterations to run per chain.}
 
 \item{cores}{An integer value specifying the number of cores to run in parallel.}
 
-\item{args}{A string containing code to append inside the call to rstan::sampling() to specify non-default values for its arguments. For example, the string "pars='mu',control=list(adapt_delta=.9)" would only keep samples for the "mu" parameter and set the adapt_delta value to .9.}
+\item{chains_per_core}{An integer value specifying the number of chain to run sequentially on each core}
 
 \item{seed_start}{An integer specifying the seed to use for the first core. All subsequent cores will use seed values that increment seed_start.}
 
-\item{warmup}{An integer value, smaller than `iter` that specifies the number of iterations to run as warmup.}
+\item{...}{Additional named arguments passed to rstan::sampling().}
 }
 \value{
 No value is returned.

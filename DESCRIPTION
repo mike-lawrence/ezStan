@@ -1,7 +1,7 @@
 Package: ezStan
 Type: Package
 Title: Helper Functions for Stan
-Version: 0.3.0
+Version: 0.4.0
 Authors@R: person(given='Michael A.',family='Lawrence',email='mike.lwrnc@gmail.com',role=c('aut','cre'))
 Description: A collection of functions to facilitate use of Stan/rstan.
 License: GPL (>= 3)

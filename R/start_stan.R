@@ -1,29 +1,11 @@
-#usage:
-# #compile the model using rstan::stan_model:
-# mod = rstan::stan_model('my_model.stan')
-# #start the chains:
-# start_stan(
-# 	mod = mod
-# 	, data = data_for_stan
-# )
-# #watch their progress:
-# watch_stan()
-# #when done, get the samples
-# fromStan = collect_stan()
-# #delete temporary files
-# clean_stan()
-# #if necessary, kill all cores in broken _stan run:
-# kill_stan()
-
 #' Start a Stan session
 #'
 #' @param data A list of objects expected by the model as data.
 #' @param mod A stan model created by rstan::stan_model().
-#' @param iter An integer value specifying the number of iterations to run per core.
 #' @param cores An integer value specifying the number of cores to run in parallel.
-#' @param args A string containing code to append inside the call to rstan::sampling() to specify non-default values for its arguments. For example, the string "pars='mu',control=list(adapt_delta=.9)" would only keep samples for the "mu" parameter and set the adapt_delta value to .9.
+#' @param chains_per_core An integer value specifying the number of chain to run sequentially on each core
 #' @param seed_start An integer specifying the seed to use for the first core. All subsequent cores will use seed values that increment seed_start.
-#' @param warmup An integer value, smaller than `iter` that specifies the number of iterations to run as warmup.
+#' @param ... Additional named arguments passed to rstan::sampling().
 #' @return No value is returned.
 #' @export
 #'
@@ -31,113 +13,111 @@
 start_stan = function(
 	data
 	, mod
-	, iter = 2e3
-	, cores = parallel::detectCores()
-	, args = NULL
+	, cores = parallel::detectCores()/2
+	, chains_per_core = 1
 	, seed_start = 1
-	, warmup = NULL
+	, ...
 ){
+	if(!('loggr' %in% installed.packages())){
+		warning(
+			'IMPORTANT: ezStan now relies on the loggr package to show erros an warnings from Stan. If you\'re seeing this message, you need to install loggr by running:
+			devtools::install_github("mike-lawrence/loggr")'
+		)
+	}
 	if(dir.exists('stan_temp')){
 		clean_stan(report_all_clean=F)
 	}
 	dir.create('stan_temp')
-	if(is.null(warmup)){
-		warmup = iter/2
+	stan_args = list(...)
+	if('iter' %in% stan_args){
+		iter = stan_args['iter']
+	}else{
+		iter = 2e3
 	}
-	cat("\nStarting chains...")
-	save(data,mod,file='stan_temp/data.rda')
-	if(!dir.exists('stan_temp/r')){
-		dir.create('stan_temp/r')
-	}
-	if(!dir.exists('stan_temp/samples')){
-		dir.create('stan_temp/samples')
-	}
-	if(!dir.exists('stan_temp/samples')){
-		dir.create('stan_temp/samples')
-	}
-	if(!dir.exists('stan_temp/stdout')){
-		dir.create('stan_temp/stdout')
-	}
-	if(!dir.exists('stan_temp/stderr')){
-		dir.create('stan_temp/stderr')
-	}
-	if(!dir.exists('stan_temp/rdas')){
-		dir.create('stan_temp/rdas')
-	}
-	stan_stuff = list(cores=cores,iter=iter,warmup=warmup)
-	stan_stuff$rFileList = list()
-	stan_stuff$chain_name_list = list()
-	stan_stuff$sample_file_list = list()
-	stan_stuff$sample_file_size_list = list()
-	stan_stuff$rda_fileList = list()
-	stan_stuff$stdoutFileList = list()
-	stan_stuff$stderr_file_list = list()
-	stan_stuff$progress_list = list()
-	stan_stuff$samplesList = list()
-	for(i in 1:cores){
-		stan_stuff$sample_file_size_list[[i]] = 0
-		stan_stuff$progress_list[[i]] = 0
-		stan_stuff$samplesList[[i]] = NULL
-		stan_stuff$rFileList[[i]] = paste0('stan_temp/r/',i,'.r')
-		stan_stuff$chain_name_list[[i]] = sprintf(paste0("chain%0",ceiling(log10(cores)),"d"),i)
-		stan_stuff$sample_file_list[[i]] = paste0('stan_temp/samples/',stan_stuff$chain_name_list[[i]],'.txt')
-		stan_stuff$rda_fileList[[i]] = paste0('stan_temp/rdas/',stan_stuff$chain_name_list[[i]],'.rda')
-		stan_stuff$stdoutFileList[[i]] = paste0('stan_temp/stdout/',stan_stuff$chain_name_list[[i]],'.txt')
-		stan_stuff$stderr_file_list[[i]] = paste0('stan_temp/stderr/',stan_stuff$chain_name_list[[i]],'.txt')
-		cat(
-			paste0('seed = ',seed_start-1+i)
-			, "\n"
-			, paste0('iter = ',iter)
-			, "\n"
-			, paste0('warmup = ',warmup)
-			, "\n"
-			, "suppressMessages(library(rstan,quietly=T))"
-			, "\n"
-			, 'load("stan_temp/data.rda")'
-			, "\n"
-			, stan_stuff$chain_name_list[[i]]
-			, " = NULL"
-			, "\n"
-			, "while(is.null("
-			, stan_stuff$chain_name_list[[i]]
-			, ")){"
-			, "\n"
-			, "try("
-			, stan_stuff$chain_name_list[[i]]
-			, "<-rstan::sampling(
-			object = mod
-			, data = data
-			, seed = seed
-			, iter = iter
-			, warmup = warmup
-			, refresh = 0
-			, chains = 1
-			, cores = 1
-			, "
-			, args
-			, ", sample_file = '"
-			, stan_stuff$sample_file_list[[i]]
-			, "'\n))}"
-			, "\n"
-			, "save(",stan_stuff$chain_name_list[[i]],",file='",stan_stuff$rda_fileList[[i]],"')"
-			, "\n"
-			, "file.remove('",stan_stuff$sample_file_list[[i]],"')"
-			, "\n"
-			, sep = ''
-			, file = stan_stuff$rFileList[[i]]
-			, append = FALSE
+	save(
+		cores
+		, chains_per_core
+		, seed_start
+		, iter
+		, stan_args
+		, file = 'stan_temp/start_stan_args.rda'
+	)
+	save(
+		data
+		, mod
+		, file = 'stan_temp/data.rda'
+	)
+	cat(
+		"chain_num = as.numeric(commandArgs(trailingOnly=TRUE)[1])
+		load(file='stan_temp/start_stan_args.rda')
+		#loads the following objects:
+		#	cores
+		#	chains_per_core
+		#	seed_start
+		#	stan_args
+
+		chain_name = sprintf(paste0('chain%0',ceiling(log10(cores)),'d'),chain_num)
+		sample_file_name = paste0('stan_temp/samples_',chain_name,'.txt')
+		rda_file_name = paste0('stan_temp/rdas_',chain_name,'.rda')
+		log_file_name = paste0('stan_temp/logs_',chain_name,'.log')
+
+		if('loggr' %in% installed.packages()){
+			suppressMessages(library(loggr,quietly=T))
+			my_formatter <- function(event) event$message
+			log_file(log_file_name,.formatter = my_formatter,subscriptions=c('message', 'warning','stop'))
+		}
+
+		load('stan_temp/data.rda')
+		suppressMessages(library(rstan,quietly=T))
+
+		stan_args$refresh = 0
+		stan_args$chains = 1
+		stan_args$cores = 1
+		stan_args$iter = iter
+		stan_args$data = data
+		stan_args$object = mod
+		stan_args$seed = seed_start + chain_num - 1
+		stan_args$sample_file = sample_file_name
+
+		post = NULL
+		while(is.null(post)){
+		try(post <- do.call(rstan::sampling,stan_args))
+		}
+		save(post,file=rda_file_name)
+		#file.remove(sample_file_name)
+
+		next_chain_num = chain_num + cores
+		if( next_chain_num<=(chains_per_core*cores) ){
+		next_chain_name = sprintf(paste0('chain%0',ceiling(log10(cores)),'d'),next_chain_num)
+		stdout_file = paste0('stan_temp/stdout_',next_chain_name,'.txt')
+		stderr_file = paste0('stan_temp/stderr_',next_chain_name,'.txt')
+		system2(
+		command = 'Rscript'
+		, args = c('--vanilla','stan_temp/do_chain.R',next_chain_num)
+		, stdout = stdout_file
+		, stderr = stderr_file
+		, wait = FALSE
 		)
+
+		}
+		"
+		, file = 'stan_temp/do_chain.R'
+	)
+	cat("\nStarting chains...")
+	for(i in 1:cores){
+		chain_name = sprintf(paste0("chain%0",ceiling(log10(cores)),"d"),i)
+		stdout_file = paste0('stan_temp/stdout_',chain_name,'.txt')
+		stderr_file = paste0('stan_temp/stderr_',chain_name,'.txt')
 		system2(
 			command = "Rscript"
-			, args = c('--vanilla',stan_stuff$rFileList[[i]])
-			, stdout = stan_stuff$stdoutFileList[[i]]
-			, stderr = stan_stuff$stderr_file_list[[i]]
+			, args = c('--vanilla','stan_temp/do_chain.R',i)
+			, stdout = stdout_file
+			, stderr = stderr_file
 			, wait = FALSE
 		)
-		Sys.sleep(.1)
 	}
-	stan_stuff$start_time = Sys.time()
-	save(stan_stuff,file='stan_temp/stan_stuff.rda')
+	start_time = Sys.time()
+	save(start_time,file='stan_temp/start_time.rda')
 	cat("\nChains started. Run watch_stan() to watch progress")
 	return(invisible(NULL))
 }

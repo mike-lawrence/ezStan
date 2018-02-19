@@ -4,7 +4,8 @@
 \alias{watch_stan}
 \title{Watch the progress of a Stan session}
 \usage{
-watch_stan(update_interval = 1, one_line_per_chain = TRUE, spacing = 3)
+watch_stan(update_interval = 1, one_line_per_chain = TRUE, spacing = 3,
+  beep_when_done = TRUE)
 }
 \arguments{
 \item{update_interval}{Number of seconds to wait between updates.}
@@ -12,6 +13,8 @@ watch_stan(update_interval = 1, one_line_per_chain = TRUE, spacing = 3)
 \item{one_line_per_chain}{A logical value specifying whether the progress for each chain should be printed on seperate lines.}
 
 \item{spacing}{An integer value specifying the number of extra spaces to add to the end of each chain's progress string. Can be used to fix misalignment when one_line_per_chain is TRUE.}
+
+\item{beep_when_done}{A logical value specifying whether a sound should be played on completion (requires the beepr package to be installed).}
 }
 \value{
 No value is returned.
