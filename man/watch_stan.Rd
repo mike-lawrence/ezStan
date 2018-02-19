@@ -5,7 +5,7 @@
 \title{Watch the progress of a Stan session}
 \usage{
 watch_stan(update_interval = 1, one_line_per_chain = TRUE, spacing = 3,
-  beep_when_done = TRUE)
+  beep_when_done = TRUE, kill_on_divergence = FALSE)
 }
 \arguments{
 \item{update_interval}{Number of seconds to wait between updates.}
@@ -15,6 +15,8 @@ watch_stan(update_interval = 1, one_line_per_chain = TRUE, spacing = 3,
 \item{spacing}{An integer value specifying the number of extra spaces to add to the end of each chain's progress string. Can be used to fix misalignment when one_line_per_chain is TRUE.}
 
 \item{beep_when_done}{A logical value specifying whether a sound should be played on completion (requires the beepr package to be installed).}
+
+\item{kill_on_divergence}{A logical value specifying whether to kill chains if a post-warmup divergence is encountered.}
 }
 \value{
 No value is returned.

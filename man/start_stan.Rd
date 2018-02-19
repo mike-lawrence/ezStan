@@ -4,15 +4,13 @@
 \alias{start_stan}
 \title{Start a Stan session}
 \usage{
-start_stan(data, mod, iter = 2000, cores = parallel::detectCores()/2,
+start_stan(data, mod, cores = parallel::detectCores()/2,
   chains_per_core = 1, seed_start = 1, ...)
 }
 \arguments{
 \item{data}{A list of objects expected by the model as data.}
 
 \item{mod}{A stan model created by rstan::stan_model().}
-
-\item{iter}{An integer specifying the number of iterations to run per chain.}
 
 \item{cores}{An integer value specifying the number of cores to run in parallel.}
 

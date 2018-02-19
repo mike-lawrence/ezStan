@@ -4,11 +4,12 @@
 #' @param one_line_per_chain A logical value specifying whether the progress for each chain should be printed on seperate lines.
 #' @param spacing An integer value specifying the number of extra spaces to add to the end of each chain's progress string. Can be used to fix misalignment when one_line_per_chain is TRUE.
 #' @param beep_when_done A logical value specifying whether a sound should be played on completion (requires the beepr package to be installed).
+#' @param kill_on_divergence A logical value specifying whether to kill chains if a post-warmup divergence is encountered.
 #' @return No value is returned.
 #' @export
 #'
 #' @examples
-watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=3,beep_when_done=TRUE){
+watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=3,beep_when_done=TRUE,kill_on_divergence=FALSE){
 	#pre-defining objects we'll get from load() to avoid package build warnings
 	cores = NULL
 	chains_per_core = NULL
@@ -125,6 +126,13 @@ watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=3,beep_w
 							}
 							if(line[6]=='1'){
 								if(watching$samples_done[[this_chain]]>watching$warmup){
+									if(kill_on_divergence){
+										kill_stan()
+										if('beepr'%in%installed.packages()){
+											eval(parse(text='beepr::beep()')) #hiding beepr dependency from package check
+										}
+										stop('Post-warmup divergence encountered')
+									}
 									watching$sum_divergences[[this_chain]] = watching$sum_divergences[[this_chain]]+1
 								}
 							}

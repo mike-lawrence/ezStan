@@ -12,6 +12,7 @@ NULL
 - watch_stan: now shows warnings and errors as they occur (requires loggr package to be installed via devtools::install_github("mike-lawrence/loggr")).
 - watch_stan: now shows post-warmup divergences and iterations exceeding the max_treedepth.
 - watch_stan: now plays a beep if the beepr package is installed.
+- watch_stan: now has an argument "kill_on_divergence" that kills the sampling if a post-warmup divergence is encountered.
 - collect_stan: now shows any warnings and errors encountered during sampling.
 - build_stan: new function that attempts to build stan models in a separate process, thereby avoiding interface hangs in RStudio. Still a work in progess as scenarios where you encounter the "hash mismatch" warning will still cause a hang.
 '
