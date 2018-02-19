@@ -3,6 +3,13 @@ An R package containing helper functions for Stan.
 
 This package contains code I develop through my teaching and personal use of Stan/RStan to make some common tasks easier. It's very much a work in progress and probably won't ever be on CRAN.
 
+Install via:
+```{r}
+devtools::install_github('mike-lawrence/ezStan)
+devtools::install_github('mike-lawrence/loggr) #temporarily necessary until smbache/loggr is updated and uploaded to CRAN 
+
+```
+
 Usage Example:
 ```{r}
 #compile a model
