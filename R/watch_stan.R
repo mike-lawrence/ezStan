@@ -95,11 +95,6 @@ watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=3,beep_w
 								watching$sample_lines[[this_chain]] = watching$sample_lines[[this_chain]][(temp-100):temp]
 							}
 						}
-						f = file(description=paste0(this_chain,'.txt'),open='a')
-						for(i in 1:length(a)){
-							writeLines(a[i],con=f)
-						}
-						close(f)
 						watching$sample_file_sizes[[this_chain]] = size
 						if(is.na(watching$max_treedepth)){
 							temp = a[substr(a,1,16)=='# max_treedepth=']
