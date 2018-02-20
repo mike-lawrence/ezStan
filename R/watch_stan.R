@@ -110,35 +110,36 @@ watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=3,beep_w
 						}
 						a = a[substr(a,1,1)!="#"]
 						a = a[substr(a,1,4)!="lp__"]
-						a_split = strsplit(a,split=',')
-						for(line_num in 1:length(a_split)){
-							line = a_split[[line_num]]
-							watching$samples_done[[this_chain]] = watching$samples_done[[this_chain]] + 1
-							if(as.numeric(line[4])>watching$max_treedepth){
-								if(watching$samples_done[[this_chain]]>watching$warmup){
-									watching$sum_exceed_max[[this_chain]] = watching$sum_exceed_max[[this_chain]]+1
-								}
-							}
-							if(line[6]=='1'){
-								if(watching$samples_done[[this_chain]]>watching$warmup){
-									if(kill_on_divergence){
-										kill_stan()
-										if('beepr'%in%installed.packages()){
-											eval(parse(text='beepr::beep()')) #hiding beepr dependency from package check
-										}
-										stop('Post-warmup divergence encountered')
+						if(length(a)>0){
+							a_split = strsplit(a,split=',')
+							for(line_num in 1:length(a_split)){
+								line = a_split[[line_num]]
+								watching$samples_done[[this_chain]] = watching$samples_done[[this_chain]] + 1
+								if(as.numeric(line[4])>watching$max_treedepth){
+									if(watching$samples_done[[this_chain]]>watching$warmup){
+										watching$sum_exceed_max[[this_chain]] = watching$sum_exceed_max[[this_chain]]+1
 									}
-									watching$sum_divergences[[this_chain]] = watching$sum_divergences[[this_chain]]+1
+								}
+								if(line[6]=='1'){
+									if(watching$samples_done[[this_chain]]>watching$warmup){
+										if(kill_on_divergence){
+											kill_stan()
+											if('beepr'%in%installed.packages()){
+												eval(parse(text='beepr::beep()')) #hiding beepr dependency from package check
+											}
+											stop('Post-warmup divergence encountered')
+										}
+										watching$sum_divergences[[this_chain]] = watching$sum_divergences[[this_chain]]+1
+									}
 								}
 							}
+							if(watching$samples_done[[this_chain]]>0){
+								watching$time_per_sample[[this_chain]] = difftime(Sys.time(), start_time,units='secs')/watching$samples_done[[this_chain]]
+							}
+							if(watching$samples_done[[this_chain]]==iter){
+								watching$dones = c(watching$dones,this_chain)
+							}
 						}
-						if(watching$samples_done[[this_chain]]>0){
-							watching$time_per_sample[[this_chain]] = difftime(Sys.time(), start_time,units='secs')/watching$samples_done[[this_chain]]
-						}
-						if(watching$samples_done[[this_chain]]==iter){
-							watching$dones = c(watching$dones,this_chain)
-						}
-
 						save(watching,file='stan_temp/watching.rda')
 					}
 				}else{
