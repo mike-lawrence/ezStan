@@ -29,10 +29,13 @@ start_stan = function(
 	}
 	dir.create('stan_temp')
 	stan_args = list(...)
-	if('iter' %in% stan_args){
-		iter = stan_args['iter']
+	print(stan_args)
+	if('iter' %in% names(stan_args)){
+		iter = stan_args[['iter']]
+		print('iter in stan_args')
 	}else{
 		iter = 2e3
+		print('iter NOT in stan_args')
 	}
 	save(
 		cores
