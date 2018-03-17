@@ -175,9 +175,9 @@ watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=3,beep_w
 			time_elapsed = difftime(Sys.time(), start_time,units='secs')
 			time_left = "?"
 			if(any(!is.na(unlist(watching$time_per_sample)))){
-				max_time_per_samples = max(unlist(watching$time_per_sample),na.rm=T)
+				time_per_sample = difftime(Sys.time(), start_time,units='secs')/sum(unlist(watching$samples_done))
 				samples_left = (iter*num_chains) - sum(unlist(watching$samples_done))
-				time_left = time_as_string(samples_left*max_time_per_samples)
+				time_left = time_as_string(samples_left*time_per_sample)
 			}
 			update_text_to_print = '\r'
 			for(this_chain in 1:num_chains){
