@@ -38,7 +38,7 @@ watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=3,beep_w
 		watching$sample_file_sizes = list()
 		watching$sample_lines = list()
 		watching$samples_done = list()
-		watching$time_per_sample = list()
+		watching$time_left = list()
 		watching$sum_exceed_max = list()
 		watching$sum_divergences = list()
 		for(this_chain in 1:num_chains){
@@ -50,7 +50,7 @@ watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=3,beep_w
 			watching$sample_file_sizes[[this_chain]] = 0
 			watching$sample_lines[[this_chain]] = c('')
 			watching$samples_done[[this_chain]] = 0
-			watching$time_per_sample[[this_chain]] = NA
+			watching$time_left[[this_chain]] = NA
 			watching$sum_exceed_max[[this_chain]] = 0
 			watching$sum_divergences[[this_chain]] = 0
 		}
@@ -134,7 +134,10 @@ watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=3,beep_w
 								}
 							}
 							if(watching$samples_done[[this_chain]]>0){
-								watching$time_per_sample[[this_chain]] = difftime(Sys.time(), start_time,units='secs')/watching$samples_done[[this_chain]]
+								#watching$time_per_sample[[this_chain]] = difftime(Sys.time(), start_time,units='secs')/watching$samples_done[[this_chain]]
+								time_per_sample = difftime(Sys.time(), start_time,units='secs')/watching$samples_done[[this_chain]]
+								samples_left = iter - watching$samples_done[[this_chain]]
+								watching$time_left[[this_chain]] = samples_left*time_per_sample
 							}
 							if(watching$samples_done[[this_chain]]==iter){
 								watching$dones = c(watching$dones,this_chain)
@@ -174,10 +177,8 @@ watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=3,beep_w
 			}
 			time_elapsed = difftime(Sys.time(), start_time,units='secs')
 			time_left = "?"
-			if(any(!is.na(unlist(watching$time_per_sample)))){
-				time_per_sample = difftime(Sys.time(), start_time,units='secs')/sum(unlist(watching$samples_done))
-				samples_left = (iter*num_chains) - sum(unlist(watching$samples_done))
-				time_left = time_as_string(samples_left*time_per_sample)
+			if(any(!is.na(unlist(watching$time_left)))){
+				time_left = time_as_string(max(unlist(watching$time_left),na.rm=T))
 			}
 			update_text_to_print = '\r'
 			for(this_chain in 1:num_chains){
