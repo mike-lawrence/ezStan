@@ -5,8 +5,8 @@ This package contains code I develop through my teaching and personal use of Sta
 
 Install via:
 ```{r}
-devtools::install_github('mike-lawrence/ezStan)
-devtools::install_github('mike-lawrence/loggr) #temporarily necessary until smbache/loggr is updated and uploaded to CRAN 
+devtools::install_github('mike-lawrence/ezStan')
+devtools::install_github('mike-lawrence/loggr') #temporarily necessary until smbache/loggr is updated and uploaded to CRAN 
 
 ```
 
