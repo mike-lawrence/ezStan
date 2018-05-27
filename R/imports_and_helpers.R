@@ -27,7 +27,7 @@ time_as_string = function(x) {
 }
 append_string = function(s,i,spacing,one_line_per_chain){
 	if(one_line_per_chain){
-		w = getOption("width")
+		w = getOption("width")+1
 		s = paste0(s,i,str_rep(' ',w-(nchar(i)%%w)+spacing))
 	}else{
 		s = paste0(s,i,str_rep(' ',spacing))
