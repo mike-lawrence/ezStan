@@ -33,7 +33,7 @@ build_stan = function(
 		if('loggr' %in% installed.packages()){
 			suppressMessages(library(loggr,quietly=T))
 			my_formatter <- function(event) event$message
-			log_file(log_file,.formatter = my_formatter)#,subscriptions=c('message', 'warning','stop'))
+			log_file(log_file,.formatter = my_formatter,subscriptions=c('message', 'warning','stop'))
 		}
 		suppressMessages(library(rstan,quietly=T))
 		rstan_options(auto_write = TRUE)
