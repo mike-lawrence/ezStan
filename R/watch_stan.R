@@ -89,7 +89,7 @@ watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=3,beep_w
 								, blank.lines.skip = TRUE
 								, fill = TRUE
 								, nrows = warmup - watching$samples_done[[this_chain]]
-							))
+							),silent=T)
 						}else{
 							a = NULL
 							try(a <- data.table::fread(
@@ -101,7 +101,7 @@ watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=3,beep_w
 								, nrows = iter - watching$samples_done[[this_chain]]
 								, fill = TRUE
 								, blank.lines.skip = TRUE
-							))
+							),silent=T)
 						}
 						if(!is.null(a)){
 							names(a)[1:7] = c('lp__','accept_stat__','stepsize__','treedepth__','n_leapfrog__','divergent__','energy__')
