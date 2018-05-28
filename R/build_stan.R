@@ -56,8 +56,13 @@ build_stan = function(
 		loops = loops+1
 		Sys.sleep(1)
 		cat('\rBuilding ...',rep('.',times=loops),sep='')
-		if(file.exists(flag_file)|(length(scan(log_file,what='character',sep='\n',quiet=T))>0)){
+		if(file.exists(flag_file)){
 			done = T
+		}
+		if(file.exists(log_file)){
+			if(length(scan(log_file,what='character',sep='\n',quiet=T))>0){
+				done = T
+			}
 		}
 	}
 	cat('\r',rep(' ',times=loops+12),sep='')
