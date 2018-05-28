@@ -12,7 +12,7 @@ devtools::install_github('mike-lawrence/loggr') #temporarily necessary until smb
 
 Usage Example:
 ```{r}
-#compile a model
+#compile a model; shouldn't block the RStudio UI like rstan::stan_model()
 my_mod = build_stan(my_stan_file)
 
 #start the model sampling
@@ -23,7 +23,7 @@ start_stan(
   , iter = 4e3
 )
 
-#now watch the sampling
+#now watch the sampling (see ?watch_stan for options, like killing when post-warmup divergences are encountered)
 watch_stan()
 #it's ok to stop the watcher; you can resume watching by simply running watch_stan() again
 
