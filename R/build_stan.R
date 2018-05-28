@@ -81,6 +81,7 @@ build_stan = function(
 	# 		cat('\nMessages from stan_model:',temp,sep='\n')
 	# 	}
 	# }
+	Sys.sleep(1)
 	return(rstan::stan_model(file))
 	# mod = NULL
 	# try(mod <- rstan::stan_model(file))
