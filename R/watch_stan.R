@@ -107,9 +107,6 @@ watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=3,beep_w
 							names(a)[1:7] = c('lp__','accept_stat__','stepsize__','treedepth__','n_leapfrog__','divergent__','energy__')
 							a = a[!is.na(a$divergent__),]
 							if(nrow(a)>0){
-								if(watching$samples_done[[this_chain]]>=warmup+1){
-									a$divergent__[1] = 1
-								}
 								watching$sample_file_sizes[[this_chain]] = size
 								watching$samples_done[[this_chain]] = watching$samples_done[[this_chain]] + nrow(a)
 								watching$sum_exceed_max[[this_chain]] = watching$sum_exceed_max[[this_chain]] + sum(a$treedepth__>max_treedepth)
