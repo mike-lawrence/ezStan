@@ -1,7 +1,7 @@
 Package: ezStan
 Type: Package
 Title: Helper Functions for Stan
-Version: 0.4.0
+Version: 0.4.1
 Authors@R: person(given='Michael A.',family='Lawrence',email='mike.lwrnc@gmail.com',role=c('aut','cre'))
 Description: A collection of functions to facilitate use of Stan/rstan.
 License: GPL (>= 3)
@@ -12,6 +12,7 @@ Imports:
     rstan (>= 2.14.1),
     tidyr (>= 0.6.0), 
     lubridate (>= 1.6.0),
+    data.table (>= 1.10.4-3),
 Suggests:
     tibble
 RoxygenNote: 6.0.1

@@ -29,16 +29,28 @@ start_stan = function(
 	}
 	dir.create('stan_temp')
 	stan_args = list(...)
+	iter = 2e3
 	if('iter' %in% names(stan_args)){
 		iter = stan_args[['iter']]
-	}else{
-		iter = 2e3
+	}
+	warmup = iter/2
+	if('warmup'%in% names(stan_args)){
+		warmup = stan_args[['warmup']]
+	}
+	max_treedepth = 10
+	if('control'%in% names(stan_args)){
+		control = stan_args[['control']]
+		if('max_treedepth'%in% names(control)){
+			max_treedepth = control[['max_treedepth']]
+		}
 	}
 	save(
 		cores
 		, chains_per_core
 		, seed_start
 		, iter
+		, warmup
+		, max_treedepth
 		, stan_args
 		, file = 'stan_temp/start_stan_args.rda'
 	)
@@ -62,9 +74,9 @@ start_stan = function(
 		log_file_name = paste0('stan_temp/logs_',chain_name,'.log')
 
 		if('loggr' %in% installed.packages()){
-			suppressMessages(library(loggr,quietly=T))
-			my_formatter <- function(event) event$message
-			log_file(log_file_name,.formatter = my_formatter,subscriptions=c('message', 'warning','stop'))
+		suppressMessages(library(loggr,quietly=T))
+		my_formatter <- function(event) event$message
+		log_file(log_file_name,.formatter = my_formatter,subscriptions=c('message', 'warning','stop'))
 		}
 
 		load('stan_temp/data.rda')
@@ -116,7 +128,7 @@ start_stan = function(
 			, wait = FALSE
 		)
 	}
-	start_time = Sys.time()
+	start_time = as.numeric(Sys.time())
 	save(start_time,file='stan_temp/start_time.rda')
 	cat("\nChains started. Run watch_stan() to watch progress")
 	return(invisible(NULL))

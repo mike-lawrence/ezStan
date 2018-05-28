@@ -22,6 +22,8 @@ watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=3,beep_w
 	#	chains_per_core
 	#	seed_start
 	#	iter
+	#	warmup
+	#	max_treedepth
 	#	stan_args
 	#pre-defining objects we'll get from load() to avoid package build warnings
 	start_time = NULL
@@ -36,7 +38,6 @@ watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=3,beep_w
 		watching$rda_files = list()
 		watching$log_files = list()
 		watching$sample_file_sizes = list()
-		watching$sample_lines = list()
 		watching$samples_done = list()
 		watching$time_left = list()
 		watching$sum_exceed_max = list()
@@ -48,14 +49,12 @@ watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=3,beep_w
 			watching$rda_files[[this_chain]] = paste0('stan_temp/rdas_',chain_name,'.rda')
 			watching$log_files[[this_chain]] = paste0('stan_temp/logs_',chain_name,'.log')
 			watching$sample_file_sizes[[this_chain]] = 0
-			watching$sample_lines[[this_chain]] = c('')
 			watching$samples_done[[this_chain]] = 0
 			watching$time_left[[this_chain]] = NA
 			watching$sum_exceed_max[[this_chain]] = 0
 			watching$sum_divergences[[this_chain]] = 0
+			watching$warmup_end_time[[this_chain]] = NA
 		}
-		watching$warmup = NA
-		watching$max_treedepth = NA
 		watching$num_done = length(list.files(path="stan_temp",pattern='rdas_'))
 		watching$dones = c()
 		watching$chains_with_messages = c()
@@ -75,53 +74,48 @@ watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=3,beep_w
 				if(file.exists(watching$sample_files[[this_chain]])){ #only try reading the sample file if it exists
 					size = file.size(watching$sample_files[[this_chain]])
 					if(size>watching$sample_file_sizes[[this_chain]]){ #only try reading if the sample file size has changed
-						f = file(description=watching$sample_files[[this_chain]],open='rb')
-						seek(con = f, origin = 'start', where = watching$sample_file_sizes[[this_chain]])
-						a = readLines(f)
-						close(f)
-						for(i in 2:length(a)){
-							if(a[i]%in%a[1:(i-1)]){
-								a[i] = ''
-							}
-							if(a[i]%in%watching$sample_lines[[this_chain]]){
-								a[i] = ''
-							}
+						# f = file(description=watching$sample_files[[this_chain]],open='rb')
+						# seek(con = f, origin = 'start', where = watching$sample_file_sizes[[this_chain]])
+						# a = readLines(f)
+						# close(f)
+						if(is.na(watching$warmup_end_time[[this_chain]])){
+							a = NULL
+							try(a <- data.table::fread(
+								file = watching$sample_files[[this_chain]]
+								, sep = ','
+								, select = paste('V',1:7,sep='')
+								, header = FALSE
+								, skip = 26 + watching$samples_done[[this_chain]]
+								, blank.lines.skip = TRUE
+								, fill = TRUE
+								, nrows = warmup - watching$samples_done[[this_chain]]
+							))
+						}else{
+							a = NULL
+							try(a <- data.table::fread(
+								file = watching$sample_files[[this_chain]]
+								, sep = ','
+								, select = paste('V',1:7,sep='')
+								, header = FALSE
+								, skip = 26 + watching$samples_done[[this_chain]] + 4
+								, nrows = iter - watching$samples_done[[this_chain]]
+								, fill = TRUE
+								, blank.lines.skip = TRUE
+							))
 						}
-						a = a[a!='']
-						if(length(a)>0){
-							watching$sample_lines[[this_chain]] = c(watching$sample_lines[[this_chain]],a)
-							temp = length(watching$sample_lines[[this_chain]])
-							if(temp>100){ #keep sample_lines short to save memory
-								watching$sample_lines[[this_chain]] = watching$sample_lines[[this_chain]][(temp-100):temp]
-							}
-						}
-						watching$sample_file_sizes[[this_chain]] = size
-						if(is.na(watching$max_treedepth)){
-							temp = a[substr(a,1,16)=='# max_treedepth=']
-							if(length(temp)>0){
-								watching$max_treedepth = as.numeric(gsub('# max_treedepth=','',temp))
-							}
-						}
-						if(is.na(watching$warmup)){
-							temp = a[substr(a,1,9)=='# warmup=']
-							if(length(temp)>0){
-								watching$warmup = as.numeric(gsub('# warmup=','',temp))
-							}
-						}
-						a = a[substr(a,1,1)!="#"]
-						a = a[substr(a,1,4)!="lp__"]
-						if(length(a)>0){
-							a_split = strsplit(a,split=',')
-							for(line_num in 1:length(a_split)){
-								line = a_split[[line_num]]
-								watching$samples_done[[this_chain]] = watching$samples_done[[this_chain]] + 1
-								if(as.numeric(line[4])>watching$max_treedepth){
-									if(watching$samples_done[[this_chain]]>watching$warmup){
-										watching$sum_exceed_max[[this_chain]] = watching$sum_exceed_max[[this_chain]]+1
-									}
+						if(!is.null(a)){
+							names(a)[1:7] = c('lp__','accept_stat__','stepsize__','treedepth__','n_leapfrog__','divergent__','energy__')
+							a = a[!is.na(a$divergent__),]
+							if(nrow(a)>0){
+								if(watching$samples_done[[this_chain]]>=warmup+1){
+									a$divergent__[1] = 1
 								}
-								if(line[6]=='1'){
-									if(watching$samples_done[[this_chain]]>watching$warmup){
+								watching$sample_file_sizes[[this_chain]] = size
+								watching$samples_done[[this_chain]] = watching$samples_done[[this_chain]] + nrow(a)
+								watching$sum_exceed_max[[this_chain]] = watching$sum_exceed_max[[this_chain]] + sum(a$treedepth__>max_treedepth)
+								if(watching$samples_done[[this_chain]]>warmup){
+									if(any(a$divergent__==1)){
+										watching$sum_divergences[[this_chain]] = watching$sum_divergences[[this_chain]] + sum(a$divergent__)
 										if(kill_on_divergence){
 											kill_stan()
 											if('beepr'%in%installed.packages()){
@@ -129,21 +123,29 @@ watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=3,beep_w
 											}
 											stop('Post-warmup divergence encountered')
 										}
-										watching$sum_divergences[[this_chain]] = watching$sum_divergences[[this_chain]]+1
 									}
 								}
-							}
-							if(watching$samples_done[[this_chain]]>0){
-								#watching$time_per_sample[[this_chain]] = difftime(Sys.time(), start_time,units='secs')/watching$samples_done[[this_chain]]
-								time_per_sample = difftime(Sys.time(), start_time,units='secs')/watching$samples_done[[this_chain]]
-								samples_left = iter - watching$samples_done[[this_chain]]
-								watching$time_left[[this_chain]] = samples_left*time_per_sample
-							}
-							if(watching$samples_done[[this_chain]]==iter){
-								watching$dones = c(watching$dones,this_chain)
+								if(watching$samples_done[[this_chain]]>0){
+									if(watching$samples_done[[this_chain]]>=warmup){
+										if(is.na(watching$warmup_end_time[[this_chain]])){
+											watching$warmup_end_time[[this_chain]] = as.numeric(Sys.time())
+										}else{
+											time_per_sample = ( as.numeric(Sys.time()) -  watching$warmup_end_time[[this_chain]] ) / (watching$samples_done[[this_chain]]-warmup)
+											samples_left = iter - watching$samples_done[[this_chain]]
+											watching$time_left[[this_chain]] = samples_left*time_per_sample
+										}
+									}else{
+										time_per_sample = ( as.numeric(Sys.time()) - start_time ) / watching$samples_done[[this_chain]]
+										samples_left = iter - watching$samples_done[[this_chain]]
+										watching$time_left[[this_chain]] = samples_left*time_per_sample
+									}
+								}
+								if(watching$samples_done[[this_chain]]==iter){
+									watching$dones = c(watching$dones,this_chain)
+								}
+								save(watching,file='stan_temp/watching.rda')
 							}
 						}
-						save(watching,file='stan_temp/watching.rda')
 					}
 				}else{
 					if(file.exists(watching$rda_files[[this_chain]])){ #might not have caught this finished chain before its sample file was deleted
@@ -153,29 +155,29 @@ watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=3,beep_w
 					}
 				}
 			}
-			if(!(this_chain %in% watching$chains_with_messages)){ #if this chain isn't already in the error list
-				if(file.exists(watching$log_files[[this_chain]])){ #check if the log file exists
-					temp = readLines(watching$log_files[[this_chain]])
-					if(length(temp)>0){ #log file has contents
-						watching$chains_with_messages = c(watching$chains_with_messages,this_chain)
-						watching$messages_to_print = c(
-							watching$messages_to_print
-							, paste0(
-								'['
-								, watching$chain_names[[this_chain]]
-								, ' messages:] '
-							)
-						)
-						for(j in 1:length(temp)){
-							watching$messages_to_print = c(
-								watching$messages_to_print
-								, temp[j]
-							)
-						}
-					}
-				}
-			}
-			time_elapsed = difftime(Sys.time(), start_time,units='secs')
+			# if(!(this_chain %in% watching$chains_with_messages)){ #if this chain isn't already in the error list
+			# 	if(file.exists(watching$log_files[[this_chain]])){ #check if the log file exists
+			# 		temp = readLines(watching$log_files[[this_chain]])
+			# 		if(length(temp)>0){ #log file has contents
+			# 			watching$chains_with_messages = c(watching$chains_with_messages,this_chain)
+			# 			watching$messages_to_print = c(
+			# 				watching$messages_to_print
+			# 				, paste0(
+			# 					'['
+			# 					, watching$chain_names[[this_chain]]
+			# 					, ' messages:] '
+			# 				)
+			# 			)
+			# 			for(j in 1:length(temp)){
+			# 				watching$messages_to_print = c(
+			# 					watching$messages_to_print
+			# 					, temp[j]
+			# 				)
+			# 			}
+			# 		}
+			# 	}
+			# }
+			time_elapsed = ( as.numeric(Sys.time()) - start_time )
 			time_left = "?"
 			if(any(!is.na(unlist(watching$time_left)))){
 				time_left = time_as_string(max(unlist(watching$time_left),na.rm=T))
@@ -244,7 +246,7 @@ watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=3,beep_w
 	for(this_chain in 1:(num_chains+1)){
 		update_text_to_print = append_string(update_text_to_print,' ',spacing,one_line_per_chain)
 	}
-	time_elapsed = difftime(Sys.time(), start_time,units='secs')
+	time_elapsed = ( as.numeric(Sys.time()) - start_time )
 	temp = paste0('All done! Elapsed time: ',time_as_string(time_elapsed))
 	update_text_to_print = append_string(update_text_to_print,temp,spacing,one_line_per_chain)
 	if(length(watching$messages_to_print)>0){
