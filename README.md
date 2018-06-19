@@ -5,7 +5,8 @@ This package contains code I develop through my teaching and personal use of Sta
 
 Install via:
 ```{r}
-devtools::install_github('mike-lawrence/ezStan')
+
+devtools::install_github('mike-lawrence/ezStan') #requires devtools to be installed, which is achieved via install.packages("devtools")
 ```
 
 Optionally, for better warning & error message handling, install loggr:
