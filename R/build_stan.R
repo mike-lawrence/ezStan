@@ -9,6 +9,9 @@
 build_stan = function(
 	file
 ){
+	if(!(file.exists(file))){
+		stop(paste0('Unable to find file named "',file,'"'))
+	}
 	if(!('loggr' %in% installed.packages())){
 		warning(
 			'IMPORTANT: ezStan now relies on the loggr package to show erros an warnings from Stan. If you\'re seeing this message, you need to install loggr by running:
