@@ -9,7 +9,7 @@
 #' @export
 #'
 #' @examples
-watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=3,beep_when_done=TRUE,kill_on_divergence=FALSE){
+watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=2,beep_when_done=TRUE,kill_on_divergence=FALSE){
 	#pre-defining objects we'll get from load() to avoid package build warnings
 	cores = NULL
 	chains_per_core = NULL
