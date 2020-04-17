@@ -3,14 +3,12 @@
 #' @param from_stan A stanfit object from a call to rstan::stan() or rstan::sampling() containing posterior samples from the model.
 #' @param par Character string naming the parameter on which to compute the summary table.
 #' @param probs Vector of probabilities to show as columns in the summary table.
-#' @param digits Integer value indicating number of significant digits to show when printing the summary table.
 #' @param X Optional contrast matrix as yielded from get_contrast_matrix() indicating the contrasts passed as data when creating the above stanfit object.
 #' @param W Optional contrast matrix as yielded from get_contrast_matrix() indicating the within-subjects contrasts passed as data when creating the above stanfit object. If present, X is ignored and B must be present.
 #' @param B Optional contrast matrix as yielded from get_contrast_matrix() indicating the between-subjects contrasts passed as data when creating the above stanfit object. W must be present, else B is ignored.
 #' @param is_cor A logical indicating whether the parameter is a correlation matrix. If TRUE, returns only the upper-diagonal entries.
-#' @param return_array A logical indicating whether to return the summary table as an array. Default is to print but not return anything.
 #'
-#' @return Either nothing (merely prints to screen) if return_array is FALSE, or the array corresponding to the summary table.
+#' @return A tibble
 #' @export
 #'
 #' @examples
@@ -18,32 +16,42 @@ stan_summary = function(
 	from_stan
 	, par
 	, probs = c(.5,.025,.975)
-	, digits = 2
 	, X = NULL
 	, W = NULL
 	, B = NULL
 	, is_cor = F
-	, return_array = F
 ){
-
-	s = summary(object=from_stan,pars=par,probs=probs,use_cache=F)$summary
-	s = array(
-		s[,4:ncol(s)]
-		, dim = c(dim(s)[1],ncol(s)-3)
-		, dimnames = list(
-			dimnames(s)[[1]]
-			, dimnames(s)[[2]][4:ncol(s)]
-		)
-	)
+	m = monitor(post,probs=probs,print=F)
+	all_pars = dimnames(m)[[1]]
+	all_pars_no_squares = str_replace(dimnames(m)[[1]],'\\[.*\\]','')
+	select_pars = all_pars[all_pars_no_squares%in%par]
+	requested_pars = par
+	m %>% 
+		tibble::as_tibble(m) %>% 
+		dplyr::mutate(
+			par = str_replace(dimnames(m)[[1]],'\\[.*\\]','')
+		) %>% 
+		dplyr::filter(
+			par%in%requested_pars
+		) %>% 
+		dplyr::select(
+			par
+			, contains('%')
+			, Rhat
+			, Bulk_ESS
+			, Tail_ESS
+		) ->
+		m
+	
 	if(!is_cor){
 		if(!is.null(X)){
-			dimnames(s)[[1]] = dimnames(X)[[2]]
+			m$par = dimnames(X)[[2]]
 		}
 		if(!is.null(W)){
-			dimnames(s)[[1]] = names_from_WB(W,B)
+			m$par = names_from_WB(W,B)
 		}
 	}else{
-		temp = dimnames(s)[[1]]
+		temp = select_pars
 		temp = gsub(']','',temp)
 		temp = unlist(strsplit(temp,'[',fixed=T))
 		temp = temp[(1:length(temp))%%2==0]
@@ -62,18 +70,8 @@ stan_summary = function(
 			v1 = temp[as.numeric(v1)]
 			v2 = temp[as.numeric(v2)]
 		}
-		s = array(
-			s[keep,]
-			, dim = c(sum(keep),ncol(s))
-			, dimnames = list(
-				paste(v1,v2,sep='~')
-				, dimnames(s)[[2]]
-			)
-		)
+		m = m[keep,]
+		m$par = paste(v1,v2,sep='~')
 	}
-	if(!return_array){
-		print(s,digits=digits)
-	}else{
-		return(s)
-	}
+	return(m)
 }
