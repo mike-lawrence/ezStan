@@ -21,7 +21,7 @@ stan_summary = function(
 	, B = NULL
 	, is_cor = F
 ){
-	m = monitor(post,probs=probs,print=F)
+	m = monitor(from_stan,probs=probs,print=F)
 	all_pars = dimnames(m)[[1]]
 	all_pars_no_squares = str_replace(dimnames(m)[[1]],'\\[.*\\]','')
 	select_pars = all_pars[all_pars_no_squares%in%par]
