@@ -46,7 +46,3 @@ stan_summary(
 )
 
 ```
-
-## TO DO:
-- collect_stan: be robust against bad chains
-- watch_stan: dynamically compute effective sample size and rhat (& other diagnostics?) for each parameter during post-warmup sampling period
