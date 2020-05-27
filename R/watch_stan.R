@@ -9,7 +9,7 @@
 #' @export
 #'
 #' @examples
-watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=2,beep_when_done=TRUE,kill_on_divergence=FALSE){
+watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=2,beep_when_done=TRUE,kill_on_divergence=FALSE,timeout=NA){
 	#pre-defining objects we'll get from load() to avoid package build warnings
 	cores = NULL
 	chains_per_core = NULL
@@ -69,6 +69,17 @@ watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=2,beep_w
 	while((watching$num_done<num_chains) & (length(watching$chains_with_messages)<num_chains) ){ #quit if done or all errors
 		watching$num_done = length(list.files(path="stan_temp",pattern='rdas_'))
 		Sys.sleep(update_interval)
+		time_now = as.numeric(Sys.time())
+		time_elapsed = ( time_now - start_time )
+		if(!is.na(timeout)){
+			if(time_elapsed>timeout){
+				kill_stan()
+				if('beepr'%in%installed.packages()){
+					eval(parse(text='beepr::beep()')) #hiding beepr dependency from package check
+				}
+				stop('Timeout reached.')
+			}
+		}
 		for(this_chain in 1:num_chains){
 			if(!(this_chain %in% watching$dones)){ #if this chain isn't already done
 				if(file.exists(watching$sample_files[[this_chain]])){ #only try reading the sample file if it exists
@@ -125,14 +136,14 @@ watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=2,beep_w
 								if(watching$samples_done[[this_chain]]>0){
 									if(watching$samples_done[[this_chain]]>=warmup){
 										if(is.na(watching$warmup_end_time[[this_chain]])){
-											watching$warmup_end_time[[this_chain]] = as.numeric(Sys.time())
+											watching$warmup_end_time[[this_chain]] = time_now
 										}else{
-											time_per_sample = ( as.numeric(Sys.time()) -  watching$warmup_end_time[[this_chain]] ) / (watching$samples_done[[this_chain]]-warmup)
+											time_per_sample = ( time_now -  watching$warmup_end_time[[this_chain]] ) / (watching$samples_done[[this_chain]]-warmup)
 											samples_left = iter - watching$samples_done[[this_chain]]
 											watching$time_left[[this_chain]] = samples_left*time_per_sample
 										}
 									}else{
-										time_per_sample = ( as.numeric(Sys.time()) - start_time ) / watching$samples_done[[this_chain]]
+										time_per_sample = time_elapsed / watching$samples_done[[this_chain]]
 										samples_left = iter - watching$samples_done[[this_chain]]
 										watching$time_left[[this_chain]] = samples_left*time_per_sample
 									}
@@ -174,7 +185,6 @@ watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=2,beep_w
 			# 		}
 			# 	}
 			# }
-			time_elapsed = ( as.numeric(Sys.time()) - start_time )
 			time_left = "?"
 			if(any(!is.na(unlist(watching$time_left)))){
 				time_left = time_as_string(max(unlist(watching$time_left),na.rm=T))
@@ -207,6 +217,12 @@ watch_stan = function(update_interval=1,one_line_per_chain=TRUE,spacing=2,beep_w
 			update_text_to_print = append_string(update_text_to_print,temp,spacing,one_line_per_chain)
 			temp = paste0('Estimated time remaining: ',time_left)
 			update_text_to_print = append_string(update_text_to_print,temp,spacing,one_line_per_chain)
+			temp = paste0('Elapsed time: ',time_as_string(time_elapsed))
+			update_text_to_print = append_string(update_text_to_print,temp,spacing,one_line_per_chain)
+			if(!is.na(timeout)){
+				temp = paste0('Time to timeout: ',time_as_string(timeout-time_elapsed))
+				update_text_to_print = append_string(update_text_to_print,temp,spacing,one_line_per_chain)
+			}
 			if(length(watching$messages_to_print)>0){
 				for(temp in watching$messages_to_print){
 					update_text_to_print = append_string(update_text_to_print,temp,spacing,one_line_per_chain)
