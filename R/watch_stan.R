@@ -5,6 +5,7 @@
 #' @param spacing An integer value specifying the number of extra spaces to add to the end of each chain's progress string. Can be used to fix misalignment when one_line_per_chain is TRUE.
 #' @param beep_when_done A logical value specifying whether a sound should be played on completion (requires the beepr package to be installed).
 #' @param kill_on_divergence A logical value specifying whether to kill chains if a post-warmup divergence is encountered.
+#' @param timeout A numeric value indicating the number of seconds after which the sampling is automatically terminated if not complete. If NA (the default), no timeout is enforced.
 #' @return No value is returned.
 #' @export
 #'

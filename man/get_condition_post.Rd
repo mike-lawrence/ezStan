@@ -4,8 +4,15 @@
 \alias{get_condition_post}
 \title{Combine coefficient samples from a Stan model with the design matrix to compute posterior samples on the conditions of the design.}
 \usage{
-get_condition_post(from_stan, par, X = NULL, W = NULL, B = NULL,
-  numeric_res = 0, collapse_intercept_to_median = FALSE)
+get_condition_post(
+  from_stan,
+  par,
+  X = NULL,
+  W = NULL,
+  B = NULL,
+  numeric_res = 0,
+  collapse_intercept_to_median = FALSE
+)
 }
 \arguments{
 \item{from_stan}{A stanfit object from a call to rstan::stan() or rstan::sampling() containing posterior samples from the model.}

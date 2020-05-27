@@ -4,8 +4,14 @@
 \alias{start_stan}
 \title{Start a Stan session}
 \usage{
-start_stan(data, mod, cores = parallel::detectCores()/2,
-  chains_per_core = 1, seed_start = 1, ...)
+start_stan(
+  data,
+  mod,
+  cores = parallel::detectCores()/2,
+  chains_per_core = 1,
+  seed_start = 1,
+  ...
+)
 }
 \arguments{
 \item{data}{A list of objects expected by the model as data.}

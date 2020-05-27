@@ -4,8 +4,14 @@
 \alias{watch_stan}
 \title{Watch the progress of a Stan session}
 \usage{
-watch_stan(update_interval = 1, one_line_per_chain = TRUE, spacing = 3,
-  beep_when_done = TRUE, kill_on_divergence = FALSE)
+watch_stan(
+  update_interval = 1,
+  one_line_per_chain = TRUE,
+  spacing = 2,
+  beep_when_done = TRUE,
+  kill_on_divergence = FALSE,
+  timeout = NA
+)
 }
 \arguments{
 \item{update_interval}{Number of seconds to wait between updates.}
@@ -17,6 +23,8 @@ watch_stan(update_interval = 1, one_line_per_chain = TRUE, spacing = 3,
 \item{beep_when_done}{A logical value specifying whether a sound should be played on completion (requires the beepr package to be installed).}
 
 \item{kill_on_divergence}{A logical value specifying whether to kill chains if a post-warmup divergence is encountered.}
+
+\item{timeout}{A numeric value indicating the number of seconds after which the sampling is automatically terminated if not complete. If NA (the default), no timeout is enforced.}
 }
 \value{
 No value is returned.
