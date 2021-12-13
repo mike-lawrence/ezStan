@@ -1,3 +1,5 @@
+# Note: This project is no longer being developed
+
 # ezStan
 An R package containing helper functions for Stan.
 
