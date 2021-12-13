@@ -1,4 +1,5 @@
-# Note: This project is no longer being developed
+# Note: 
+This project is no longer being developed. See [aria](https://github.com/mike-lawrence/aria) for a more reccent project with some shared/extended features. 
 
 # ezStan
 An R package containing helper functions for Stan.
